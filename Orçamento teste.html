@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento de Pintura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 850px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background: #002060;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        header h2 {
+            margin: 0;
+            font-size: 16px;
+            font-style: italic;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        section h3 {
+            background: #002060;
+            color: white;
+            padding: 5px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background: #002060;
+            color: white;
+            text-transform: uppercase;
+        }
+        input, textarea {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin: 4px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button {
+            text-align: center;
+        }
+        .button button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Orçamento de Pintura</h1>
+            <h2>Pele Pinturas</h2>
+        </header>
+
+        <form id="orcamentoForm">
+            <section>
+                <h3>Dados do Prestador de Serviço</h3>
+                <table>
+                    <tr>
+                        <td>Empresa:</td>
+                        <td><input type="text" id="prestadorNome" placeholder="Ex: Pele Pinturas"></td>
+                    </tr>
+                    <tr>
+                        <td>CNPJ:</td>
+                        <td><input type="text" id="prestadorCnpj" placeholder="Ex: 20.507.258/0001-96"></td>
+                    </tr>
+                    <tr>
+                        <td>Contato:</td>
+                        <td><input type="text" id="prestadorContato"></td>
+                    </tr>
+                </table>
+            </section>
+
+            <section>
+                <h3>Dados do Contratante</h3>
+                <table>
+                    <tr>
+                        <td>Empresa:</td>
+                        <td><input type="text" id="contratanteNome" placeholder="Ex: Condomínio Residencial"></td>
+                    </tr>
+                    <tr>
+                        <td>CNPJ:</td>
+                        <td><input type="text" id="contratanteCnpj"></td>
+                    </tr>
+                    <tr>
+                        <td>Contato:</td>
+                        <td><input type="text" id="contratanteContato"></td>
+                    </tr>
+                    <tr>
+                        <td>Endereço:</td>
+                        <td><input type="text" id="contratanteEndereco"></td>
+                    </tr>
+                </table>
+            </section>
+
+            <section>
+                <h3>Descrição dos Serviços</h3>
+                <table id="servicosTable">
+                    <tr>
+                        <th>Serviços</th>
+                        <th>N° Andares</th>
+                        <th>N° por Andar</th>
+                        <th>Valor Unitário</th>
+                        <th>Total</th>
+                    </tr>
+                    <tr>
+                        <td><input type="text" class="servicoDescricao" placeholder="Ex: Pintura"></td>
+                        <td><input type="text" class="nAndares"></td>
+                        <td><input type="text" class="nPorAndar"></td>
+                        <td><input type="text" class="valorUnitario"></td>
+                        <td><input type="text" class="valorTotal"></td>
+                    </tr>
+                </table>
+                <button type="button" onclick="adicionarLinha()">Adicionar Linha</button>
+            </section>
+
+            <section>
+                <h3>Materiais</h3>
+                <textarea id="materiais" placeholder="Descrição dos materiais"></textarea>
+            </section>
+
+            <section>
+                <h3>Prazo da Obra</h3>
+                <input type="text" id="prazo" placeholder="Ex: 40 dias">
+            </section>
+
+            <div class="button">
+                <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        function adicionarLinha() {
+            const table = document.getElementById('servicosTable');
+            const newRow = table.insertRow(-1);
+
+            for (let i = 0; i < 5; i++) {
+                const newCell = newRow.insertCell(i);
+                const input = document.createElement('input');
+                input.type = 'text';
+                if (i === 0) input.placeholder = 'Ex: Pintura';
+                input.className = ['servicoDescricao', 'nAndares', 'nPorAndar', 'valorUnitario', 'valorTotal'][i];
+                newCell.appendChild(input);
+            }
+        }
+
+        async function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const element = document.querySelector('.container');
+
+    // Remover temporariamente o box-shadow antes de gerar o PDF
+    const originalBoxShadow = element.style.boxShadow;
+    element.style.boxShadow = 'none';
+
+    // Gerar a captura da tela
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL('image/png');
+
+    // Restaurar o box-shadow original
+    element.style.boxShadow = originalBoxShadow;
+
+    // Configurações para ajustar a imagem ao PDF
+    const imgWidth = 190; // Largura em mm
+    const pageHeight = 297; // Altura da página em mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Adicionar a imagem capturada ao PDF
+    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        doc.addPage();
+        doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+    }
+
+    // Salvar o PDF
+    doc.save('orcamento.pdf');
+}
+    </script>
+</body>
+</html>
